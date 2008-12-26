@@ -22,7 +22,7 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
         return array(
             'author' => 'Andreas Gohr',
             'email'  => 'gohr@cosmocode.de',
-            'date'   => '2008-10-21',
+            'date'   => '2008-12-26',
             'name'   => 'ACL Info Plugin',
             'desc'   => 'Displays information about the ACLs for the current page',
             'url'    => 'http://dokuwiki.org/plugin:aclinfo',
