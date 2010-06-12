@@ -41,7 +41,7 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
      * Connect pattern to lexer
      */
     function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('~~ACLINFO~~',$mode,'plugin_aclinfo');
+        $this->Lexer->addSpecialPattern('~~ACLINFO!?[^~]*?~~',$mode,'plugin_aclinfo');
     }
 
 
@@ -49,7 +49,8 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
      * Handle the match
      */
     function handle($match, $state, $pos, &$handler){
-        return array();
+        $match = substr($match,10,-2);
+        return array($match);
     }
 
     /**
@@ -59,7 +60,13 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
         global $INFO;
         if($format != 'xhtml') return false;
 
-        $perms = $this->_aclcheck($INFO['id']);
+        if(!$data[0]) {
+            $page = $INFO['id'];
+        } else {
+            $page = $data[0];
+        }
+
+        $perms = $this->_aclcheck($page);
         $R->listu_open();
         foreach((array)$perms as $who => $p){
             $R->listitem_open(1);
@@ -76,7 +83,7 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
         global $conf;
         global $AUTH_ACL;
 
-
+        $id    = cleanID($id);
         $ns    = getNS($id);
         $perms = array();
 
