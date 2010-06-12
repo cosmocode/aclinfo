@@ -16,20 +16,6 @@ require_once(DOKU_PLUGIN.'syntax.php');
 class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
 
     /**
-     * return some info
-     */
-    function getInfo(){
-        return array(
-            'author' => 'Andreas Gohr',
-            'email'  => 'gohr@cosmocode.de',
-            'date'   => '2008-12-26',
-            'name'   => 'ACL Info Plugin',
-            'desc'   => 'Displays information about the ACLs for the current page',
-            'url'    => 'http://dokuwiki.org/plugin:aclinfo',
-        );
-    }
-
-    /**
      * What kind of syntax are we?
      */
     function getType(){
