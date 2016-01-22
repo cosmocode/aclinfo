@@ -48,7 +48,7 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
     /**
      * Handle the match
      */
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
         $match = substr($match,10,-2);
         return array($match);
     }
@@ -56,7 +56,7 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
     /**
      * Create output
      */
-    function render($format, &$R, $data) {
+    function render($format, Doku_Renderer $R, $data) {
         global $INFO;
         if($format != 'xhtml') return false;
 
