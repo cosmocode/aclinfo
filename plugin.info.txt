@@ -1,7 +1,7 @@
 base    aclinfo
 author  Andreas Gohr
 email   dokuwiki@cosmocode.de
-date    2016-01-24
+date    2016-08-04
 name    ACL Info Plugin
 desc    Displays information about the ACLs for the current page
 url     http://www.dokuwiki.org/plugin:aclinfo
