@@ -118,8 +118,6 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
 
             //get next higher namespace
             $ns   = getNS($ns);
-            //get next higher namespace
-            $ns   = getNS($ns);
 
             if($path != '\*'){
                 $path = $ns.':\*';
