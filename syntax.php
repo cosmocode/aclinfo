@@ -67,6 +67,7 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
         }
 
         $perms = $this->_aclcheck($page);
+        $R->doc .= '<div class="plugin_aclinfo">' . DOKU_LF;
         $R->listu_open();
         foreach((array)$perms as $who => $p){
             $R->listitem_open(1);
@@ -76,6 +77,7 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
             $R->listitem_close();
         }
         $R->listu_close();
+        $R->doc .= '</div>' . DOKU_LF;
         return true;
     }
 
