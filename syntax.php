@@ -2,6 +2,7 @@
 /**
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Andreas Gohr <andi@splitbrain.org>
+ * @author     Frieder Schrempf <dev@fris.de>
  */
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
@@ -58,6 +59,8 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
      */
     function render($format, Doku_Renderer $R, $data) {
         global $INFO;
+        global $AUTH_ACL;
+
         if($format != 'xhtml') return false;
 
         if(!$data[0]) {
@@ -66,70 +69,52 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
             $page = $data[0];
         }
 
-        $perms = $this->_aclcheck($page);
+        $subjects = array();
+
+        /*
+         * Get the permissions for @ALL in the beginning, we will use it
+         * to compare and filter other permissions that are lower.
+         */
+        $allperm = auth_aclcheck($page, '', array('ALL'));
+
         $R->listu_open();
-        foreach((array)$perms as $who => $p){
+
+        /*
+         * Go through each entry of the ACL rules.
+         */
+        foreach($AUTH_ACL as $rule){
+            $rule = preg_replace('/#.*$/', '', $rule); // Ignore comments
+            $subject = preg_split('/[ \t]+/', $rule)[1];
+            $subject = urldecode($subject);
+            $groups = array();
+            $user = '';
+
+            // Skip if we already checked this user/group
+            if(in_array($subject, $subjects))
+                continue;
+
+            $subjects[] = $subject;
+
+            // Check if this entry is about a user or a group (starting with '@')
+            if(substr($subject, 0, 1) === '@')
+                    $groups[] = substr($subject, 1);
+            else
+                    $user = $subject;
+
+            $perm = auth_aclcheck($page, $user, $groups);
+
+            // Skip permissions of 0 or if lower than @ALL
+            if($perm == AUTH_NONE || ($subject != '@ALL' && $perm <= $allperm))
+                continue;
+
             $R->listitem_open(1);
             $R->listcontent_open();
-            $R->cdata(sprintf($this->getLang('perm'.$p), urldecode($who)));
+            $R->cdata(sprintf($this->getLang('perm'.$perm), $subject));
             $R->listcontent_close();
             $R->listitem_close();
         }
         $R->listu_close();
         return true;
-    }
-
-    function _aclcheck($id){
-        global $conf;
-        global $AUTH_ACL;
-
-        $id    = cleanID($id);
-        $ns    = getNS($id);
-        $perms = array();
-
-        //check exact match first
-        $matches = preg_grep('/^'.preg_quote($id,'/').'\s+/',$AUTH_ACL);
-        if(count($matches)){
-            foreach($matches as $match){
-                $match = preg_replace('/#.*$/','',$match); //ignore comments
-                $acl   = preg_split('/\s+/',$match);
-                if($acl[2] > AUTH_DELETE) $acl[2] = AUTH_DELETE; //no admins in the ACL!
-                if(!isset($perms[$acl[1]])) $perms[$acl[1]] = $acl[2];
-            }
-        }
-
-        //still here? do the namespace checks
-        if($ns){
-            $path = $ns.':\*';
-        }else{
-            $path = '\*'; //root document
-        }
-
-        do{
-            $matches = preg_grep('/^'.$path.'\s+/',$AUTH_ACL);
-            if(count($matches)){
-                foreach($matches as $match){
-                    $match = preg_replace('/#.*$/','',$match); //ignore comments
-                    $acl   = preg_split('/\s+/',$match);
-                    if($acl[2] > AUTH_DELETE) $acl[2] = AUTH_DELETE; //no admins in the ACL!
-                    if(!isset($perms[$acl[1]])) $perms[$acl[1]] = $acl[2];
-                }
-            }
-
-            //get next higher namespace
-            $ns   = getNS($ns);
-
-            if($path != '\*'){
-                $path = $ns.':\*';
-                if($path == ':\*') $path = '\*';
-            }else{
-                //we did this already
-                //break here
-                break;
-            }
-        }while(1); //this should never loop endless
-
-        return $perms;
     }
 }
 
