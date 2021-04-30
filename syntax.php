@@ -15,6 +15,15 @@ require_once(DOKU_PLUGIN.'syntax.php');
  * need to inherit from this class
  */
 class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
+    /** @var helper_plugin_aclinfo */
+    protected $helper;
+
+    /**
+     * syntax_plugin_aclinfo constructor.
+     */
+    public function __construct() {
+        $this->helper = plugin_load('helper', 'aclinfo');
+    }
 
     /**
      * What kind of syntax are we?
@@ -59,7 +68,6 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
      */
     function render($format, Doku_Renderer $R, $data) {
         global $INFO;
-        global $AUTH_ACL;
 
         if($format != 'xhtml') return false;
 
@@ -69,47 +77,17 @@ class syntax_plugin_aclinfo extends DokuWiki_Syntax_Plugin {
             $page = $data[0];
         }
 
-        $subjects = array();
-
-        /*
-         * Get the permissions for @ALL in the beginning, we will use it
-         * to compare and filter other permissions that are lower.
-         */
-        $allperm = auth_aclcheck($page, '', array('ALL'));
+        $info = $this->helper->getACLInfo($page);
 
         $R->listu_open();
 
         /*
          * Go through each entry of the ACL rules.
          */
-        foreach($AUTH_ACL as $rule){
-            $rule = preg_replace('/#.*$/', '', $rule); // Ignore comments
-            $subject = preg_split('/[ \t]+/', $rule)[1];
-            $subject = urldecode($subject);
-            $groups = array();
-            $user = '';
-
-            // Skip if we already checked this user/group
-            if(in_array($subject, $subjects))
-                continue;
-
-            $subjects[] = $subject;
-
-            // Check if this entry is about a user or a group (starting with '@')
-            if(substr($subject, 0, 1) === '@')
-                    $groups[] = substr($subject, 1);
-            else
-                    $user = $subject;
-
-            $perm = auth_aclcheck($page, $user, $groups);
-
-            // Skip permissions of 0 or if lower than @ALL
-            if($perm == AUTH_NONE || ($subject != '@ALL' && $perm <= $allperm))
-                continue;
-
+        foreach($info as $entry){
             $R->listitem_open(1);
             $R->listcontent_open();
-            $R->cdata(sprintf($this->getLang('perm'.$perm), $subject));
+            $R->cdata($this->helper->getACLInfoString($entry));
             $R->listcontent_close();
             $R->listitem_close();
         }
