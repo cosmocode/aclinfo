@@ -53,7 +53,7 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
 
         $perms = $this->aclCheck($page);
         $R->listu_open();
-        foreach ((array)$perms as $who => $p) {
+        foreach ($perms as $who => $p) {
             $R->listitem_open(1);
             $R->listcontent_open();
             $R->cdata(sprintf($this->getLang('perm' . $p), urldecode($who)));
@@ -80,14 +80,7 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
 
         //check exact match first
         $matches = preg_grep('/^' . preg_quote($id, '/') . '\s+/', $AUTH_ACL);
-        if (count($matches)) {
-            foreach ($matches as $match) {
-                $match = preg_replace('/#.*$/', '', $match); //ignore comments
-                $acl   = preg_split('/\s+/', $match);
-                if ($acl[2] > AUTH_DELETE) $acl[2] = AUTH_DELETE; //no admins in the ACL!
-                if (!isset($perms[$acl[1]])) $perms[$acl[1]] = $acl[2];
-            }
-        }
+        $perms = array_merge($perms, $this->processAclMatches($matches));
 
         //still here? do the namespace checks
         if ($ns) {
@@ -98,14 +91,7 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
 
         do {
             $matches = preg_grep('/^' . $path . '\s+/', $AUTH_ACL);
-            if (count($matches)) {
-                foreach ($matches as $match) {
-                    $match = preg_replace('/#.*$/', '', $match); //ignore comments
-                    $acl   = preg_split('/\s+/', $match);
-                    if ($acl[2] > AUTH_DELETE) $acl[2] = AUTH_DELETE; //no admins in the ACL!
-                    if (!isset($perms[$acl[1]])) $perms[$acl[1]] = $acl[2];
-                }
-            }
+            $perms = array_merge($perms, $this->processAclMatches($matches));
 
             //get next higher namespace
             $ns   = getNS($ns);
@@ -122,4 +108,23 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
 
         return $perms;
     }
+
+    /**
+     * Process ACL matches and return parsed permissions.
+     *
+     * @param array $matches Array of ACL lines to process
+     * @return array Parsed permissions array
+     */
+    protected function processAclMatches(array $matches)
+    {
+        $perms = [];
+        foreach ($matches as $match) {
+            $match = preg_replace('/#.*$/', '', $match); //ignore comments
+            $acl   = preg_split('/\s+/', $match);
+            if ($acl[2] > AUTH_DELETE) $acl[2] = AUTH_DELETE; //no admins in the ACL!
+            if (!isset($perms[$acl[1]])) $perms[$acl[1]] = $acl[2];
+        }
+        return $perms;
+    }
+
 }
