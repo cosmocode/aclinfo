@@ -52,6 +52,7 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
         }
 
         $perms = $this->aclCheck($page);
+        $R->doc .= '<div class="plugin_aclinfo">';
         $R->listu_open();
         foreach ($perms as $who => $p) {
             $R->listitem_open(1);
@@ -61,6 +62,7 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
             $R->listitem_close();
         }
         $R->listu_close();
+        $R->doc .= '</div>';
         return true;
     }
 
