@@ -128,5 +128,4 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
         }
         return $perms;
     }
-
 }
