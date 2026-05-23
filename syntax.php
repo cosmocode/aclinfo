@@ -1,5 +1,6 @@
 <?php
 
+use dokuwiki\Parsing\Handler;
 use dokuwiki\Extension\SyntaxPlugin;
 
 /**
@@ -33,7 +34,7 @@ class syntax_plugin_aclinfo extends SyntaxPlugin
     }
 
     /** @inheritdoc */
-    public function handle($match, $state, $pos, Doku_Handler $handler)
+    public function handle($match, $state, $pos, Handler $handler)
     {
         $match = substr($match, 10, -2);
         return [$match];
